@@ -123,12 +123,12 @@ namespace ShComp
                 var s = new SemaphoreSlim(1);
                 var tasks = Enumerable.Range(1, 5).Select(t => Task.Run(async () =>
                 {
-                    using (await s.Lock())
+                    await s.Critical(async () =>
                     {
                         Console.Write($"{t} -> ");
                         await Task.Delay(10);
                         Console.WriteLine($"<- {t}");
-                    }
+                    });
                 }));
 
                 await Task.WhenAll(tasks);
