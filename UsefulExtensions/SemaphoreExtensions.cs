@@ -10,7 +10,7 @@ namespace ShComp
     static class SemaphoreExtensions
     {
         /// <summary>
-        /// <see cref="System.Threading.SemaphoreSlim"/> を用いた、非同期処理中の排他処理を実現します。
+        /// <see cref="SemaphoreSlim"/> を用いた、非同期処理中の排他処理を実現します。
         /// </summary>
         /// <param name="func">排他で行いたい処理</param>
         public static async Task Critical(this SemaphoreSlim s, Func<Task> func)
@@ -20,7 +20,7 @@ namespace ShComp
         }
 
         /// <summary>
-        /// <see cref="System.Threading.SemaphoreSlim"/> を用いた、値を返したい非同期処理中の排他処理を実現します。
+        /// <see cref="SemaphoreSlim"/> を用いた、値を返したい非同期処理中の排他処理を実現します。
         /// </summary>
         /// <param name="func">排他で行いたい処理</param>
         /// <typeparam name="T">返す値の型</typeparam>
@@ -31,7 +31,7 @@ namespace ShComp
         }
 
         /// <summary>
-        /// <see cref="System.Threading.SemaphoreSlim"/> を用いた、非同期処理中の排他処理を実現します。
+        /// <see cref="SemaphoreSlim"/> を用いた、非同期処理中の排他処理を実現します。
         /// </summary>
         /// <param name="func">排他で行いたい処理</param>
         public static async Task Critical(this SemaphoreSlim s, Action func)
@@ -41,7 +41,7 @@ namespace ShComp
         }
 
         /// <summary>
-        /// <see cref="System.Threading.SemaphoreSlim"/> を用いた、値を返したい非同期処理中の排他処理を実現します。
+        /// <see cref="SemaphoreSlim"/> を用いた、値を返したい非同期処理中の排他処理を実現します。
         /// </summary>
         /// <param name="func">排他で行いたい処理</param>
         /// <typeparam name="T">返す値の型</typeparam>
@@ -49,6 +49,22 @@ namespace ShComp
         {
             try { await s.WaitAsync(); return func(); }
             finally { s.Release(); }
+        }
+
+        /// <summary>
+        /// <see cref="SemaphoreSlim"/> を用いた、非同期処理中の排他処理を実現します。
+        /// セマフォを開放するためのオブジェクトを返します。セマフォの解放にusingステートメントを使ってください。
+        /// </summary>
+        public static Task<IDisposable> WaitObjectAsync(this SemaphoreSlim s)
+        {
+            return s.WaitAsync().ContinueWith<IDisposable>(_ => new _(s));
+        }
+
+        private class _ : IDisposable
+        {
+            private SemaphoreSlim _s;
+            public _(SemaphoreSlim s) { _s = s; }
+            public void Dispose() => _s.Release();
         }
     }
 }
